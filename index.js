@@ -201,25 +201,27 @@ function viewEmployeesByManager(){
 
 
 // TODO: FIX THIS FUNCTION
-// function viewEmployeesByDepartment(){
-//   db.findAllEmployeesByManager().then(([rows]) => {
-//     let departments = rows;
-//     const departmentChoices = departments.map(({ id, name }) => ({ name: name, value: id }));
-    
-//     prompt([
-//       {
-//         type: "list",
-//         name: "departmentId",
-//         message: "Which department would you like to see employees for?",
-//         choices: departmentChoices
-//       }
-//     ]).then(res => db.findAllEmployeesByDepartment(res.departmentId)).then(([rows]) => {
-//       let employees = rows;
-//       console.log("\n");
-//       console.table(employees);
-//     }).then(() => createPrompts())
-//   });
-// }
+function viewEmployeesByDepartment(){
+  db.findAllDepartments().then(([rows]) => {
+      let departments = rows;
+      const departmentChoices = departments.map(({ id, name }) => ({
+        name: name,
+        value: id
+      }));
+      prompt([
+        {
+          type: "list",
+          name: "departmentId",
+          message: "Which department would you like to see employees for?",
+          choices: departmentChoices
+        }
+      ]).then(res => db.findAllEmployeesByDepartment(res.departmentId)).then(([rows]) => {
+          let employees = rows;
+          console.log("\n");
+          console.table(employees);
+        }).then(() => createPrompts())
+    });
+}
 // TODO: FIX ABOVE
 
 // let's create a function to view the available roles 
@@ -234,6 +236,7 @@ function viewRoles(){
   .then(() => createPrompts());
 }
 
+// let's write a function that follows the same logic as our view employees function
 function viewDepartments(){
   db.findAllDepartments()
   .then(([rows]) => {
@@ -242,32 +245,308 @@ function viewDepartments(){
     console.table(departments);
   })
   .then(() => createPrompts());
-};
+}
 
-// TODO: finish writing functions here
+// let's write a function that follows the same logic as our view employees function
+function viewUtilizedBudgetByDepartment(){
+  db.viewDepartmentBudgets()
+  .then(([rows]) => {
+    let departments = rows;
+    console.log("\n");
+    console.table(departments);
+  })
+  .then(() => createPrompts());
+}
 
-// function viewUtilizedBudgetByDepartment();
 
-// function updateEmployeeRole();
+// let's create a function to update an employee's role
+// this function will be similar to our viewemployeesbymanager fxn
 
-// function updateEmployeeMangager();
+// first we are going to run our query to find all employees
+// next, let's pass that data as an array and save that as the variable employee
+// next, we will create a variable called employee choices which will store our data with a map method which returns a new array
+// in this map mehtod we are passing an object as a parameter and returning an object with template literals to access our resulted data from the first query we had in this function
 
-// function addEmployee();
+// next, we will use inquirer to present the information that we stored in our employee choices constant
+// then we chain a second part to this
+// now we need to present the user with new roles choices
 
-// function addRole();
+// we store our user result into a new variable called employeeid
+// we are going to run our query to find all roles
+// pass that result as an arrray in an arrow function
+// create a new variable that will have a map method run on it to produce a new array
 
-// function addDepartment();
+// after we will use inquirer again to ask the user questions based on our stored variable
+// once, we have what role they want to assign we need to run our updateemployeerole query and pass in our employee id and role id to store
+function updateEmployeeRole(){
+  db.findAllEmployees().then(([rows]) => {
+    let employees = rows;
+    const employeeChoices = employees.map(({ id, first_name, last_name }) => ({
+      name: `${first_name} ${last_name}`,
+      value: id
+    }));
+    prompt([
+      {
+        type: "list",
+        name: "employeeId",
+        message: "Which employee's role do you want to update?",
+        choices: employeeChoices
+      }
+    ]).then(res => {
+      let employeeId = res.employeeId;
+      db.findAllRoles().then(([rows]) => {
+        let roles = rows;
+        const roleChoices = roles.map(({ id, title }) => ({
+          name: `${title}`,
+          value: id
+        }));
+        prompt([
+          {
+            type: "list",
+            name: "roleId",
+            message: "Which role do you want to assign the selected employee?",
+            choices: roleChoices
+          }
+        ]).then(res => db.updateEmployeeRole(employeeId, res.roleId)).then(() => console.log("Updated employee's role")).then(() => createPrompts())
+      });
+    });
+  })
+}
 
-// function removeEmployee();
+// this function will update our employee manager
+// it will have the same logic as our updateEmployeeRole function
+function updateEmployeeMangager(){
+  db.findAllEmployees().then(([rows]) => {
+    let employees = rows;
+    const employeeChoices = employees.map(({ id, first_name, last_name }) => ({
+      name: `${first_name} ${last_name}`,
+      value: id
+    }));
+    prompt([
+      {
+        type: "list",
+        name: "employeeId",
+        message: "Which employee's manager do you want to update?",
+        choices: employeeChoices
+      }
+    ]).then(res => {
+      let employeeId = res.employeeId
+      db.findAllPossibleManagers(employeeId).then(([rows]) => {
+        let managers = rows;
+        const managerChoices = managers.map(({ id, first_name, last_name }) => ({
+          name: `${first_name} ${last_name}`,
+          value: id
+        }));
+        prompt([
+          {
+            type: "list",
+            name: "managerId",
+            message:
+            "Which employee do you want to set as manager for the selected employee?",
+            choices: managerChoices
+          }
+        ]).then(res => db.updateEmployeeManager(employeeId, res.managerId)).then(() => console.log("Updated employee's manager")).then(() => createPrompts())
+      })
+    })
+  })
+}
 
-// function removeRole();
+// let's create a function that allows the user to add an employee
+// we need to take into account that employees can have different roles
 
-// function removeDepartment();
+// let's start with an inquirer prompt
+// we need to know the employees name
+// then we will store the users results into variables to do later
+
+// then we will access or db query to find all roles
+// we run a map method on our results to display the results in our next inquirer where we ask the user what the employees role is
+
+// then we will take our users answer and store it as variable BEFORE
+// we run our next database query to find all employees 
+// now, we will run another map method on our previous results 
+// the unshift method will allow us to add values to the beginning of the array
+
+// then we need to ask if the employee has a manager
+// now, let's store the users result in a variable 
+// and pass that variable into the create employee query
+
+function addEmployee(){
+  prompt([
+    {
+      name: "first_name",
+      message: "What is the employee's first name?"
+    },
+    {
+      name: "last_name",
+      message: "What is the employee's last name?"
+    }
+  ]).then(res => {
+    let firstName = res.first_name;
+    let lastName = res.last_name;
+    db.findAllRoles().then(([rows]) => {
+      let roles = rows;
+      const roleChoices = roles.map(({ id, title }) => ({
+        name: title,
+        value: id
+      }));
+      prompt({
+        type: "list",
+        name: "roleId",
+        message: "What is the employee's role?",
+        choices: roleChoices
+      }).then(res => {
+        let roleId = res.roleId;
+        db.findAllEmployees().then(([rows]) => {
+          let employees = rows;
+          const managerChoices = employees.map(({ id, first_name, last_name }) => ({name: `${first_name} ${last_name}`, value: id}));
+          managerChoices.unshift({ name: "None", value: null });
+          prompt({
+            type: "list",
+            name: "managerId",
+            message: "Who is the employee's manager?",
+            choices: managerChoices
+          }).then(res => {
+            let employee = {
+              manager_id: res.managerId,
+              role_id: roleId,
+              first_name: firstName,
+              last_name: lastName
+            } 
+            db.createEmployee(employee);}).then(() => console.log(`Added ${firstName} ${lastName} to the database`)).then(() => createPrompts())
+          })
+        })
+      })
+    })
+  }
+  
+  // let's create a function to add a role
+  // let's run the find department query 
+  // again let's create a variable of the result that was stored in an array
+  // now we need to ask the user what is the role they want to add along with it's assumed salary and what department the role will belong to
+  // this is where we will use our variable we created at the beginning
+  // then, we will we use those results and use our createrole query 
+  function addRole(){
+    db.findAllDepartments().then(([rows]) => {
+      let departments = rows;
+      const departmentChoices = departments.map(({ id, name }) => ({
+        name: name,
+        value: id
+      }));
+      prompt([
+        {
+          name: "title",
+          message: "What is the name of the role?"
+        },
+        {
+          name: "salary",
+          message: "What is the salary of the role?"
+        },
+        {
+          type: "list",
+          name: "department_id",
+          message: "Which department does the role belong to?",
+          choices: departmentChoices
+        }
+      ]).then(role => {
+        db.createRole(role).then(() => console.log(`Added ${role.title} to the database`)).then(() => createPrompts())
+      })
+    })
+  }
+  
+  // let's create our function to add a department to the company
+  // we will use inquirer to ask for the department we want to create
+  // then we will pass that result into our db createDepartment function with our result as our parameter
+  function addDepartment(){
+    prompt([
+      {
+        name: "name",
+        message: "What is the name of the department?"
+      }
+    ]).then(res => {
+      let name = res;
+      db.createDepartment(name).then(() => console.log(`Added ${name.name} to the database`)).then(() => createPrompts())
+    })
+  }
+
+  // let's create a function to remove an employee
+  // first we need to find all the employees 
+  // then store the result into a variable and run an array map method which we will use for the inquirer prompt to ask the user questions
+  // now we pass the user answers into the query removeemployee 
+  function removeEmployee(){
+    db.findAllEmployees()
+    .then(([rows]) => {
+      let employees = rows;
+      const employeeChoices = employees.map(({ id, first_name, last_name }) => ({
+        name: `${first_name} ${last_name}`,
+        value: id
+      }));
+      prompt([
+        {
+          type: "list",
+          name: "employeeId",
+          message: "Which employee do you want to remove?",
+          choices: employeeChoices
+        }
+      ]).then(res => db.removeEmployee(res.employeeId)).then(() => console.log("Removed employee from the database")).then(() => createPrompts())
+    })
+  }
+
+  
+  // let's add a function to remove roles 
+  // this will follow the same logic as our remove employee funciton
+  function removeRole(){
+    db.findAllRoles()
+    .then(([rows]) => {
+      let roles = rows;
+      const roleChoices = roles.map(({ id, title }) => ({
+        name: title,
+        value: id
+      }));
+      
+      prompt([
+        {
+          type: "list",
+          name: "roleId",
+          message:
+          "Which role do you want to remove? (Warning: This will also remove employees)",
+          choices: roleChoices
+        }
+      ])
+      .then(res => db.removeRole(res.roleId))
+      .then(() => console.log("Removed role from the database"))
+      .then(() => createPrompts())
+    })
+  }
+
+// let's create a function to remove deparments
+  // this will follow the same logic as our remove employee function as well
+function removeDepartment() {
+  db.findAllDepartments()
+    .then(([rows]) => {
+      let departments = rows;
+      const departmentChoices = departments.map(({ id, name }) => ({
+        name: name,
+        value: id
+      }));
+
+      prompt({
+        type: "list",
+        name: "departmentId",
+        message:
+          "Which department would you like to remove? (Warning: This will also remove associated roles and employees)",
+        choices: departmentChoices
+      })
+        .then(res => db.removeDepartment(res.departmentId))
+        .then(() => console.log(`Removed department from the database`))
+        .then(() => createPrompts())
+    })
+
+}
 
 //  the process.exit method ends the process 
 function quit() {
   console.log('Finished. Have a good day!');
   process.exit();
-};
+}
 
 
