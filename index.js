@@ -1,8 +1,29 @@
 
 // let's import inquirer and use destructuring to store it
-import inquirer from 'inquirer';
-const { prompt } = inquirer;
+// import inquirer from 'inquirer';
+const { prompt } = require('inquirer');
 
+// let's bring in our db foler which has our connection file, our index file that has our functions that will allow us to search our database, our schema that will create our database, and the initial data for our database
+
+// this will render a splash screen that is visually appealing to the users
+const logo = require('asciiart-logo');
+
+// let's bring in our database queries and connections
+const db = require('./db');
+
+// this will allow us to pass strings and array in to a console.table call that will then be formatted and printed on a new line
+require('console.table');
+
+// let's start our program that will display 
+initialize();
+
+// logo will be what our app displays when it runs aka our program name
+// render is the method that writes out to the console
+function initialize() {
+  const logoText = logo({ name: 'Employee Tracker' }).render();
+  console.log(logoText);
+  createPrompts();
+}
 
 // we are gong to create a function that will create prompts for the user
   // then it will take their answers where we will them in choice = anwers.choice 
@@ -10,7 +31,7 @@ const { prompt } = inquirer;
 function createPrompts() { 
     prompt([
       {
-        type: 'checkbox',
+        type: 'list',
         name: 'choice',
         message: 'What would you like to do?',
         choices: [
@@ -39,12 +60,16 @@ function createPrompts() {
               value: 'VIEW_UTILIZED_BUDGET_BY_DEPARTMENT'
             },
             {
-              name: 'Add Employee',
-              value: 'ADD_EMPLOYEE'
+              name: 'Update Employee Role',
+              value: 'UPDATE_EMPLOYEE_ROLE'
             },
             {
-              name: 'Add Manager',
-              value: 'ADD_MANAGER'
+              name: 'Update Employee Manager',
+              value: 'UPDATE_EMPLOYEE_MANAGER'
+            },
+            {
+              name: 'Add Employee',
+              value: 'ADD_EMPLOYEE'
             },
             {
               name: 'Add Role',
@@ -53,14 +78,6 @@ function createPrompts() {
             {
               name: 'Add Department',
               value: 'ADD_DEPARTMENT'
-            },
-            {
-              name: 'Update Employee Role',
-              value: 'UPDATE_EMPLOYEE_ROLE'
-            },
-            {
-              name: 'Update Employee Manager',
-              value: 'UPDATE_EMPLOYEE_MANAGER'
             },
             {
               name: 'Remove Employee',
@@ -101,23 +118,20 @@ function createPrompts() {
         case 'VIEW_UTILIZED_BUDGET_BY_DEPARTMENT':
           viewUtilizedBudgetByDepartment();
           break;
+        case 'UPDATE_EMPLOYEE_ROLE':
+          updateEmployeeRole();
+          break;
+        case 'UPDATE_EMPLOYEE_MANAGER':
+          updateEmployeeMangager();
+          break;
         case 'ADD_EMPLOYEE':
           addEmployee();
-          break;
-        case 'ADD_MANAGER':
-          addManager();
           break;
         case 'ADD_ROLE':
           addRole();
           break;
         case 'ADD_DEPARTMENT':
           addDepartment();
-          break;
-        case 'UPDATE_EMPLOYEE_ROLE':
-          updateEmployeeRole();
-          break;
-        case 'UPDATE_EMPLOYEE_MANAGER':
-          updateEmployeeMangager();
           break;
         case 'REMOVE_EMPLOYEE':
           removeEmployee();
@@ -128,80 +142,108 @@ function createPrompts() {
         case 'REMOVE_DEPARTMENT':
           removeDepartment();
           break;
-        case 'QUIT':
-          quit();
-          break;       
+        default:
+          quit();      
       }
     })
 }
 
-// TODO: finish writing 16 functions here
-
+// let's create a function to render all employees
+// have we run that we are going to chain a then statement to it where we pass our queried result as an array
+//  reassign our results to  employee 
+// then we will give a line break for visual purposes
+// then we will print out the table with our data
 function viewEmployees() {
+  db.findAllEmployees().then(([rows]) => {
+    let employees = rows;
+    console.log('\n');
+    console.table(employees);
+  }).then (() => createPrompts);
+}
+// TODO: finish writing functions here
 
-};
+// let's create a function that will show what employees are under specific managers
 
-function viewEmployeesByManager() {
-
-};
-
-function viewEmployeesByDepartment() {
-
-};
-
-function viewRoles() {
-  
-};
-
-function viewDepartments() {
-
-};
-
-function viewUtilizedBudgetByDepartment() {
-
-};
-
-function addEmployee() {
-
-};
-
-function addManager() {
-
-};
-
-function addRole() {
-
-};
-
-function addDepartment() {
-
-};
-
-function updateEmployeeRole() {
-
-};
-
-function updateEmployeeMangager() {
-
-};
-
-function removeEmployee() {
-
-};
-
-function removeRole() {
-
-};
-
-function removeDepartment() {
-
-};
+function viewEmployeesByManager(){
+  db.findAllEmployees().then(([rows]) => {
+    let managers = rows;
+    const managerChoices = managers.map(({ id, first_name, last_name }) => ({name: `${first_name} ${last_name}`,
+value: id}));
+      prompt([
+        {
+          type: "list",
+          name: "managerId",
+          message: "Which employee do you want to see direct reports for?",
+          choices: managerChoices
+        }
+      ]).then(res => db.findAllEmployeesByManager(res.managerId)).then(([rows]) => {
+          let employees = rows;
+          console.log("\n");
+          if (employees.length === 0) {
+            console.log("The selected employee has no direct reports");
+          } else {
+            console.table(employees);
+          }
+        }).then(() => createPrompts())
+  });
+}
 
 
- // the process.exit method ends the process 
+
+
+
+
+
+
+
+
+// let's create a function that will show which employees work in a specific department
+// function viewEmployeesByDepartment(){
+//   db.findAllEmployeesByManager().then(([rows]) => {
+//     let departments = rows;
+//     const departmentChoices = departments.map(({ id, name }) => ({ name: name, value: id }));
+
+//     prompt([
+//       {
+//         type: "list",
+//         name: "departmentId",
+//         message: "Which department would you like to see employees for?",
+//         choices: departmentChoices
+//       }
+//     ]).then(res => db.findAllEmployeesByDepartment(res.departmentId)).then(([rows]) => {
+//       let employees = rows;
+//       console.log("\n");
+//       console.table(employees);
+//     }).then(() => createPrompts())
+//   });
+// }
+
+// function viewRoles();
+
+// function viewDepartments();
+
+// function viewUtilizedBudgetByDepartment();
+
+// function updateEmployeeRole();
+
+// function updateEmployeeMangager();
+
+// function addEmployee();
+
+// function addRole();
+
+// function addDepartment();
+
+// function removeEmployee();
+
+// function removeRole();
+
+// function removeDepartment();
+
+//  the process.exit method ends the process 
 function quit() {
   console.log('Finished. Have a good day!');
   process.exit();
 };
 
-createPrompts();
+

@@ -4,15 +4,14 @@ const mysql = require('mysql2');
 
 // let's create our connection to our local database
 const connection = mysql.createConnection({
-  host:'localhost',
+  host:'127.0.0.1',
   user:'root',
-  // TODO: add password try to make it a different one
-  password: ''
-  database: 'employees'
+  password: 'Hu3nt!ngton',
+  database: 'employees',
 });
 
-connection.connect(function (error) {
-  if (error) throw error;
+connection.connect(function (err) {
+  if (err) throw err;
 });
 
 // let's export our connection to use in our index js file in our db folder
