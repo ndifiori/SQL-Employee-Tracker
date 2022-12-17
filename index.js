@@ -160,49 +160,52 @@ function viewEmployees() {
     console.table(employees);
   }).then (() => createPrompts);
 }
-// TODO: finish writing functions here
 
 // let's create a function that will show what employees are under specific managers
-
+// building on the process to our first function except this time
+// we are creating a constant and we are going to use an array method called map that should return a new array
+// we are going to use a function within our map method
+// within this function we are passing an object as our parameter
+// and we are going to return our parameters by using template literals to access the data we stored in our manager variable
+// then we want to use inquirer to ask which employee they would like to see reports for 
+// again, using the constant we created for the choices for inquirer
+// then let us chain a resolve arrow function to use our database query that let's us find employees by manager
+// then we can display the data
+  // if the data doesn't pass our if check then log a message
 function viewEmployeesByManager(){
   db.findAllEmployees().then(([rows]) => {
     let managers = rows;
     const managerChoices = managers.map(({ id, first_name, last_name }) => ({name: `${first_name} ${last_name}`,
-value: id}));
-      prompt([
-        {
-          type: "list",
-          name: "managerId",
-          message: "Which employee do you want to see direct reports for?",
-          choices: managerChoices
-        }
-      ]).then(res => db.findAllEmployeesByManager(res.managerId)).then(([rows]) => {
-          let employees = rows;
-          console.log("\n");
-          if (employees.length === 0) {
-            console.log("The selected employee has no direct reports");
-          } else {
-            console.table(employees);
-          }
-        }).then(() => createPrompts())
+    value: id}));
+    prompt([
+      {
+        type: "list",
+        name: "managerId",
+        message: "Which manager would you like to see the employees working under them for?",
+        choices: managerChoices
+      }
+    ]).then(res => db.findAllEmployeesByManager(res.managerId)).then(([rows]) => {
+      let employees = rows;
+      console.log("\n");
+      if (employees.length === 0) {
+        console.log("The selected manager has no direct employees working under them.");
+      } else {
+        console.table(employees);
+      }
+    }).then(() => createPrompts())
   });
 }
 
-
-
-
-
-
-
-
-
-
 // let's create a function that will show which employees work in a specific department
+// we will follow the similar process as the viewemployeebymanager function
+
+
+// TODO: FIX THIS FUNCTION
 // function viewEmployeesByDepartment(){
 //   db.findAllEmployeesByManager().then(([rows]) => {
 //     let departments = rows;
 //     const departmentChoices = departments.map(({ id, name }) => ({ name: name, value: id }));
-
+    
 //     prompt([
 //       {
 //         type: "list",
@@ -217,10 +220,31 @@ value: id}));
 //     }).then(() => createPrompts())
 //   });
 // }
+// TODO: FIX ABOVE
 
-// function viewRoles();
+// let's create a function to view the available roles 
+// let's create this exactly like we did the view employees function
+function viewRoles(){
+  db.findAllRoles()
+  .then(([rows]) => {
+    let roles = rows;
+    console.log("\n");
+    console.table(roles);
+  })
+  .then(() => createPrompts());
+}
 
-// function viewDepartments();
+function viewDepartments(){
+  db.findAllDepartments()
+  .then(([rows]) => {
+    let departments = rows;
+    console.log("\n");
+    console.table(departments);
+  })
+  .then(() => createPrompts());
+};
+
+// TODO: finish writing functions here
 
 // function viewUtilizedBudgetByDepartment();
 

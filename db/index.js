@@ -46,9 +46,11 @@ class DB {
   // let's create a function to find all employees in a given department
   findAllEmployeesByDepartment(departmentId) {
     return this.connection.promise().query(
-      'SELECT employee.id, employee.first_name, employee.last_name, role.title FROM employee LEFT JOIN role on employee.role_id = role.id LEFT JOIN department department on role.department_id = department.id WHERE department.id = ?;', departmentId);
+      "SELECT employee.id, employee.first_name, employee.last_name, role.title FROM employee LEFT JOIN role on employee.role_id = role.id LEFT JOIN department department on role.department_id = department.id WHERE department.id = ?;",
+      departmentId
+    );
   }
-
+  
   // the ? in our query states select all employees except the one the user selected 
     // they can't be their own manager
   findAllPossibleManagers(employeeID) {
